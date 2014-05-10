@@ -1,0 +1,28 @@
+programa()
+{
+#bool a;
+
+a=verdadero;
+
+bool b;
+
+b = a o verdadero;#
+
+int asd;
+
+asd = 1;
+
+mirararriba();
+avanzar(asd);
+
+#
+si( b )
+{
+mirararriba();
+avanzar(2);
+}
+sino{ mirarabajo();
+avanzar(2);   }#
+
+
+}

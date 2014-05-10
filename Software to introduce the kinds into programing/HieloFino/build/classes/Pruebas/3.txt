@@ -1,0 +1,16 @@
+programa()
+{
+	int aaaa;
+int bbbb;
+	si (aaaa==0) entonces
+
+		mirararriba();
+	sino
+		si (bbbb==0) entonces
+
+			bbbb=12312312312312312312313132;
+		sino
+			bbbb=000000000000000000;
+		finsi
+	finsi
+}

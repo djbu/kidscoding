@@ -1,0 +1,87 @@
+programa()
+{
+
+   mirararriba();
+   avanzar(1000);
+
+   mirarizquierda();
+ avanzar(400);
+
+mirarabajo();
+ avanzar(400);
+
+#aqui estamos bien abajo#
+mirarderecha();
+avanzar( 4 );
+
+mirarabajo();
+avanzar(1);
+
+mirarderecha();
+avanzar(1);
+
+mirarArriba();
+avanzar(100);
+
+mirarderecha();
+avanzar(29);
+
+mirarabajo();
+avanzar(100);
+
+mirarderecha();
+avanzar(1);
+
+mirararriba();
+avanzar(232323);
+
+mirarDerecha();
+avanzar(1);
+
+mirarabajo();
+avanzar(100);
+
+mirarDerecha();
+avanzar(1);
+
+mirararriba();
+avanzar(12);
+
+
+mirarDerecha();
+avanzar(1);
+
+mirarabajo();
+avanzar(100);
+
+mirarDerecha();
+avanzar(1);
+
+mirararriba();
+avanzar(12);
+
+
+mirarDerecha();
+avanzar(1);
+
+mirarabajo();
+avanzar(100);
+
+mirarDerecha();
+avanzar(1);
+
+mirararriba();
+avanzar(12);
+
+mirarDerecha();
+avanzar(2);
+
+mirararriba();
+avanzar(12);
+
+mirarizquierda();
+avanzar(123);
+
+
+
+}

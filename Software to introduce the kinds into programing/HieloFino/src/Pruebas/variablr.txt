@@ -1,0 +1,20 @@
+programa()
+{
+
+bool x;
+
+x=verdadero;
+x=x y falso;
+
+si(x)
+{
+mirarabajo();
+}
+sino
+{
+mirararriba();
+}
+
+avanzar(2);
+
+}

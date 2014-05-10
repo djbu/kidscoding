@@ -1,0 +1,7 @@
+0 será nada
+1 será límite
+2 será hielo
+3 será hieloDoble
+4 será muñeco
+5 será llegada
+6 será agua

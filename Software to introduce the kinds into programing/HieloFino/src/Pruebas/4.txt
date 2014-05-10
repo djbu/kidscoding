@@ -1,0 +1,12 @@
+programa(){
+
+int i;
+int i;
+
+para(i=0;i=i+1; i==0  )
+{
+	int b;
+
+}
+
+}

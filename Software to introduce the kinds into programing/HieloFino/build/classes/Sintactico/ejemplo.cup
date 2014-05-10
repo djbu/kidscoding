@@ -1,0 +1,407 @@
+package Sintactico;
+
+import Lexico.*;
+import hielofino.inicio;
+import java.io.*;
+import java_cup.runtime.*;
+import ast.*;
+import tabla.*;
+import util.Utilidades;
+
+parser code
+{:
+	public static void main(String args[]) throws Exception{
+		//new parser(new Yylex(new FileInputStream(args[0]))).parse();
+		new parser(new Yylex(System.in)).parse();
+	}
+/*	public void syntax_error(Symbol s){
+		    String msj = "Error de sintaxis. Linea: " + (s.right + 1) +  " Columna: " + s.left + ". Texto: \"" + s.value + "\"";
+            
+		report_error(msj, null);
+                inicio.escribirMsjError(msj);
+	}*/
+
+public void syntax_error(Symbol cur_token) {
+   int lineno = action_obj.getLinea();
+        int column = action_obj.getColumna();
+	
+        
+        String msj = lineno 
+		         + ":" + column + ": error de sintáxis cerca de ";
+        System.err.print(msj);
+        
+        inicio.escribirMsjError(msj+Utilidades.imprimirToken(cur_token));
+        
+	omerrs++;
+	if (omerrs>50) {
+	   System.err.println("El análisis se ha detenido porque se encontraron muchos errores");
+	   System.exit(1);
+	}
+    }
+
+////////////////////////////////////
+int omerrs = 0;
+
+    public int getOmerrs(){
+        return omerrs;
+    }
+
+:}
+
+
+action code
+{:
+
+	int getLinea() {
+	return ((Yylex)parser.getScanner()).getLinea();
+            }
+
+    int getColumna(){
+        return ((Yylex)parser.getScanner()).getColumna();
+    }
+
+    SimboloAbstracto getNombreArchivo()
+    {
+
+     return ((Yylex)parser.getScanner()).getNombreArchivo();
+    }
+:}
+
+terminal SimboloAbstracto  PROGRAMA;
+terminal SimboloAbstracto  LLAVE_ABRE;
+terminal SimboloAbstracto  LLAVE_CIERRA;
+terminal SimboloAbstracto  COR_ABRE;
+terminal SimboloAbstracto  COR_CIERRA;
+terminal SimboloAbstracto  PUNTO_COMA;
+terminal SimboloAbstracto  PARENT_ABRE;
+terminal SimboloAbstracto  PARENT_CIERRA;
+terminal SimboloAbstracto  MIRAR_ARRIBA;
+terminal SimboloAbstracto  MIRAR_ABAJO;
+terminal SimboloAbstracto  MIRAR_IZQ;
+terminal SimboloAbstracto  MIRAR_DER;
+terminal SimboloAbstracto  AVANZAR;
+terminal SimboloAbstracto  INT;
+terminal SimboloAbstracto  BOOL;
+terminal SimboloAbstracto  COMA;
+terminal SimboloAbstracto  ID;
+terminal SimboloAbstracto  Y;
+terminal SimboloAbstracto  O;
+terminal SimboloAbstracto  MENOR;
+terminal SimboloAbstracto  MENOR_IGUAL;
+terminal SimboloAbstracto  MAYOR;
+terminal SimboloAbstracto  MAYOR_IGUAL;
+terminal SimboloAbstracto  IGUAL;
+terminal SimboloAbstracto  DIFERENTE;
+terminal SimboloAbstracto   SUMA, RESTA, MULT, DIV, MOD;
+terminal SimboloAbstracto SI;
+terminal SimboloAbstracto THEN;
+terminal SimboloAbstracto ENDIF;
+terminal SimboloAbstracto SINO;
+terminal SimboloAbstracto REPITA;
+terminal SimboloAbstracto HASTA;
+terminal SimboloAbstracto NUM;
+terminal SimboloAbstracto TRUE;
+terminal SimboloAbstracto FALSE;
+terminal SimboloAbstracto PARA;
+terminal SimboloAbstracto IGUAL_LOGICO;
+
+
+
+non terminal Programa inicio;
+non terminal ListaSentencia sec_sent;
+non terminal Sentencia sent;
+non terminal Sentencia funcion_call;
+non terminal Sentencia sent_decl;
+non terminal Sentencia sent_if;
+non terminal Sentencia sent_for;
+non terminal Sentencia sent_asig;
+non terminal Sentencia sent_repita;
+non terminal Sentencia decl_ent;
+non terminal Sentencia decl_bool;
+non terminal Expresion expr;
+non terminal Expresion expr_relacionales;
+non terminal Expresion expr_aritmeticas;
+non terminal Expresion term;
+non terminal Expresion factor;
+
+precedence left SUMA, RESTA;
+precedence left MULT, DIV;
+
+
+
+inicio ::= PROGRAMA PARENT_ABRE PARENT_CIERRA LLAVE_ABRE sec_sent:sc LLAVE_CIERRA
+{:
+	RESULT = new Programa(sc, 1, 0);
+:}
+;
+
+sec_sent ::=  sec_sent:sc  sent:s
+			{:
+				sc.agregarElemento(s);
+        		RESULT = sc;
+			:}
+			| sent:s
+			{:
+				RESULT = new ListaSentencia( getLinea(), getColumna());
+        		RESULT.agregarElemento(s);
+			:}
+			;
+
+sent ::= funcion_call:s PUNTO_COMA {: RESULT = s; :}
+		| sent_decl:s PUNTO_COMA {: RESULT = s; :}
+		| sent_if:s {: RESULT = s; :}
+		| sent_for:s  {: RESULT = s; :}
+		| sent_repita:s PUNTO_COMA {: RESULT = s; :}
+		| sent_asig:s  PUNTO_COMA {: RESULT = s; :}
+		;
+
+funcion_call ::= MIRAR_ARRIBA:m PARENT_ABRE PARENT_CIERRA 
+				{: RESULT =  new MirarArriba( m.getLinea(), m.getColumna() ); :}
+
+				| MIRAR_ABAJO:m PARENT_ABRE PARENT_CIERRA 
+				{: RESULT =  new MirarAbajo( m.getLinea(), m.getColumna() ); :}
+
+				| MIRAR_IZQ:m PARENT_ABRE PARENT_CIERRA 
+				{: RESULT =  new MirarIzquierda( m.getLinea(), m.getColumna() ); :}
+
+				| MIRAR_DER:m PARENT_ABRE PARENT_CIERRA 
+				{: RESULT =  new MirarDerecha( m.getLinea(), m.getColumna() ); :}
+
+				| AVANZAR:a PARENT_ABRE expr:e PARENT_CIERRA 
+				{: RESULT =  new Avanzar( e  ,a.getLinea(), a.getColumna() ); :}
+				;
+
+sent_asig ::= ID:id IGUAL:a expr:e 
+			{:
+			RESULT = new Asignacion(new Variable(id, id.getLinea(), id.getColumna()), e, a.getLinea(), a.getColumna());
+			:}
+			
+			| ID COR_ABRE expr COR_CIERRA IGUAL expr 
+			{:
+					//PENDIENTE!!!!
+			:}
+			;
+
+sent_decl ::= INT decl_ent:e
+			{:
+				RESULT = e;
+			:} 
+			| BOOL decl_bool:e
+			{:
+				RESULT = e;
+			:}
+			;
+
+
+decl_ent ::= decl_ent COMA  ID:id
+		{:
+		///////////////////////////
+           SimboloAbstracto a = new SimboloAbstracto("0", id.getLinea() , id.getColumna()) {
+               
+               @Override
+               public Object clone() {
+                   throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+               }
+           };            
+          ///////////////////////////
+			RESULT = new Declaracion(new Variable(id, id.getLinea(), id.getColumna()), new NumeroEntero(a,id.getLinea(),id.getColumna()), id.getLinea(), id.getColumna());
+			
+		:}
+		
+		| decl_ent COMA  ID COR_ABRE expr COR_CIERRA
+		{:
+			//PENDIENTE!!!
+		:}
+		
+		| ID:id
+		{:
+		///////////////////////////
+           SimboloAbstracto a = new SimboloAbstracto("0", id.getLinea() , id.getColumna()) {
+               
+               @Override
+               public Object clone() {
+                   throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+               }
+           };            
+          ///////////////////////////
+			RESULT = new Declaracion(new Variable(id, id.getLinea(), id.getColumna()), new NumeroEntero(a,id.getLinea(),id.getColumna()), id.getLinea(), id.getColumna());
+		:}
+		
+		| ID COR_ABRE expr COR_CIERRA
+		{:
+			//PENDIENTE!!!!
+		:}
+		;
+
+
+
+decl_bool ::= decl_bool COMA  ID:id
+		{:
+		////////////////////////////
+        SimboloAbstracto a = new SimboloAbstracto("falso", id.getLinea(),id.getColumna()) {
+            
+            @Override
+            public Object clone() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        };      
+        /////////////////////////////
+
+			RESULT = new Declaracion(new Variable(id, id.getLinea(), id.getColumna()), new NumeroBool(a,id.getLinea(),id.getColumna()), id.getLinea(), id.getColumna());
+		:}
+		
+		| decl_bool COMA  ID COR_ABRE expr COR_CIERRA
+		{:
+			//PENDIENTE!!!!
+		:}
+		
+		| ID:id 	      
+        {:
+		////////////////////////////
+        SimboloAbstracto a = new SimboloAbstracto("falso", id.getLinea(),id.getColumna()) {
+            
+            @Override
+            public Object clone() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        };      
+        /////////////////////////////
+
+			RESULT = new Declaracion(new Variable(id, id.getLinea(), id.getColumna()), new NumeroBool(a,id.getLinea(),id.getColumna()), id.getLinea(), id.getColumna());
+		:}
+		
+		| ID COR_ABRE expr COR_CIERRA
+		{:
+			//PENDIENTE!!!!
+		:}
+		;
+
+
+
+
+
+
+expr ::= expr:e1 Y:m  expr_relacionales:e2
+	{: RESULT = new Y(e1, e2, m.getLinea(), m.getColumna()); :}
+	
+	| expr:e1 O:m  expr_relacionales :e2
+	{: RESULT = new O(e1, e2, m.getLinea(), m.getColumna()); :}
+
+	| expr_relacionales:e
+    {:
+        RESULT = e;
+    :}
+	;
+
+
+
+expr_relacionales ::= expr_relacionales:e1 MENOR:m expr_aritmeticas:e2
+					{: RESULT = new Menor(e1, e2, m.getLinea(), m.getColumna()); :}
+					
+					| expr_relacionales:e1 MENOR_IGUAL:m expr_aritmeticas:e2
+					{: RESULT = new MenorIgual(e1, e2, m.getLinea(), m.getColumna()); :} 
+					
+					| expr_relacionales:e1 MAYOR:m expr_aritmeticas :e2
+					{: RESULT = new Mayor(e1, e2, m.getLinea(), m.getColumna()); :}
+					
+					| expr_relacionales:e1 MAYOR_IGUAL:m expr_aritmeticas :e2
+					{: RESULT = new MayorIgual(e1, e2, m.getLinea(), m.getColumna()); :}
+					
+					| expr_relacionales:e1 IGUAL_LOGICO:m expr_aritmeticas:e2
+					{: RESULT = new Igual(e1, e2, m.getLinea(), m.getColumna()); :} 
+					
+					| expr_relacionales:e1 DIFERENTE:m expr_aritmeticas :e2
+					{: RESULT = new Diferente(e1, e2, m.getLinea(), m.getColumna()); :}
+
+					| expr_aritmeticas:e
+				    {:
+				        RESULT = e;
+				    :}
+					; 
+
+
+
+expr_aritmeticas ::= expr_aritmeticas:e1 SUMA:m term :e2
+					{: RESULT = new Suma(e1, e2, m.getLinea(), m.getColumna()); :}
+					
+					| expr_aritmeticas:e1 RESTA:m term :e2
+					{: RESULT = new Resta(e1, e2, m.getLinea(), m.getColumna()); :}
+					
+					| term:e
+    				{:
+        				RESULT = e;
+    				:}				
+					;
+
+
+
+term ::=  term:e1 MULT:m factor:e2
+		{: RESULT = new Multiplicacion(e1, e2, m.getLinea(), m.getColumna()); :}	
+		
+		| term:e1 DIV:m factor:e2
+		{: RESULT = new Division(e1, e2, m.getLinea(), m.getColumna()); :}	
+		
+		| term:e1 MOD:m factor:e2
+		{: RESULT = new Modulo(e1, e2, m.getLinea(), m.getColumna()); :}
+		
+		| factor:e
+    	{:
+        	RESULT = e;
+    	:}
+		;
+
+
+
+factor ::=  ID:id
+			{:
+				RESULT = new Variable(id, id.getLinea(), id.getColumna());
+			:} 
+			|  ID COR_ABRE expr COR_CIERRA
+			
+			| NUM:val
+			{:
+				RESULT = new NumeroEntero(val, val.getLinea(), val.getColumna());
+			:} 	
+			| TRUE:val 
+			{:
+				RESULT = new NumeroBool(val, val.getLinea(), val.getColumna());
+			:}
+			| FALSE:val
+			{:
+				RESULT = new NumeroBool(val, val.getLinea(), val.getColumna());
+			:}
+			| PARENT_ABRE expr:e PARENT_CIERRA 
+			{:
+				RESULT = e;
+			:}
+			;
+
+
+
+sent_for ::= PARA:r PARENT_ABRE sent_asig:s1 PUNTO_COMA sent_asig:s2 PUNTO_COMA expr:s3 PARENT_CIERRA LLAVE_ABRE sec_sent:secc LLAVE_CIERRA
+{:
+	RESULT = new Para(s1, s2, s3, secc, r.getLinea(), r.getColumna());
+:}
+;
+
+
+
+sent_if ::= SI:s PARENT_ABRE  expr:c PARENT_CIERRA LLAVE_ABRE  sec_sent:en  LLAVE_CIERRA
+		{:
+       		RESULT = new Condicional(c, en, null, s.getLinea(), s.getColumna());
+    	:} 
+		
+		| SI:s PARENT_ABRE  expr:c PARENT_CIERRA LLAVE_ABRE sec_sent:en  LLAVE_CIERRA SINO LLAVE_ABRE  sec_sent:sn LLAVE_CIERRA
+		{:
+        	RESULT = new Condicional(c, en, sn, s.getLinea(), s.getColumna());
+    	:}
+		;
+
+
+
+sent_repita ::= REPITA:r LLAVE_ABRE  sec_sent:s LLAVE_CIERRA HASTA PARENT_ABRE  expr:c PARENT_CIERRA
+{:
+	RESULT = new RepitaHasta(c, s, r.getLinea(), r.getColumna());
+:}
+;
+

@@ -1,0 +1,20 @@
+programa()
+{
+	int largo;
+	int steps;
+
+	largo = 18;
+	steps=1;
+
+	repita
+	{
+		mirarderecha();
+		avanzar(steps);
+		mirarabajo();
+		avanzar(steps);
+	
+	largo = largo-1;
+
+	}hasta(largo==0);
+
+}
