@@ -6,7 +6,6 @@ en el working directory irse a la carpeta de lib natives windows dándole la ruta
 aceptar 
 enjoy!!
 
-integrantes 
-daniel becerra
-diego juliao 
-aztiley araque
+Integrantes: 
+Diego Juliao
+Daniel Becerra
